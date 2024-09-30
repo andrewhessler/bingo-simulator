@@ -8,33 +8,37 @@ const O_MIN_VALUE = 61;
 
 const BINGO_COLUMN_HEADER_CHARS: [5]u8 = .{ 'B', 'I', 'N', 'G', 'O' };
 const BINGO_CARD_HEADER = "| B | I | N | G | O |\n";
-var b_values = generate_bingo_col_values(B_MIN_VALUE);
-var i_values = generate_bingo_col_values(I_MIN_VALUE);
-var n_values = generate_bingo_col_values(N_MIN_VALUE);
-var g_values = generate_bingo_col_values(G_MIN_VALUE);
-var o_values = generate_bingo_col_values(O_MIN_VALUE);
+var b_values = generateBingoColValues(B_MIN_VALUE);
+var i_values = generateBingoColValues(I_MIN_VALUE);
+var n_values = generateBingoColValues(N_MIN_VALUE);
+var g_values = generateBingoColValues(G_MIN_VALUE);
+var o_values = generateBingoColValues(O_MIN_VALUE);
 
 pub const BingoCardV1 = struct {
-    b_columns: [5]u8,
-    i_columns: [5]u8,
-    n_columns: [5]u8,
-    g_columns: [5]u8,
-    o_columns: [5]u8,
+    b_column: [5]u8,
+    i_column: [5]u8,
+    n_column: [5]?u8,
+    g_column: [5]u8,
+    o_column: [5]u8,
 
-    pub fn initRandom() !BingoCardV1 {
-        var prng = std.rand.DefaultPrng.init(blk: {
-            var seed: u64 = undefined;
-            try std.posix.getrandom(std.mem.asBytes(&seed));
-            std.debug.print("{d}\n", .{seed});
-            break :blk seed;
-        });
+    pub fn initRandom(prng: *std.Random.DefaultPrng) BingoCardV1 {
+        var final_n_columns: [5]?u8 = undefined;
+        const init_n_columns: [5]u8 = getRandom5(n_values[0..], prng);
+
+        for (0..5) |i| {
+            if (i == 2) {
+                final_n_columns[i] = null;
+            } else {
+                final_n_columns[i] = init_n_columns[i];
+            }
+        }
 
         return .{
-            .b_columns = get_random_5(b_values[0..], &prng),
-            .i_columns = get_random_5(i_values[0..], &prng),
-            .n_columns = get_random_5(n_values[0..], &prng),
-            .g_columns = get_random_5(g_values[0..], &prng),
-            .o_columns = get_random_5(o_values[0..], &prng),
+            .b_column = getRandom5(b_values[0..], prng),
+            .i_column = getRandom5(i_values[0..], prng),
+            .n_column = final_n_columns,
+            .g_column = getRandom5(g_values[0..], prng),
+            .o_column = getRandom5(o_values[0..], prng),
         };
     }
 
@@ -43,7 +47,7 @@ pub const BingoCardV1 = struct {
         const format_string = comptime buildRowFormatString();
         try stdout.print(BINGO_CARD_HEADER, .{});
         for (0..5) |i| {
-            try stdout.print(format_string, .{ self.b_columns[i], self.i_columns[i], self.n_columns[i], self.g_columns[i], self.o_columns[i] });
+            try stdout.print(format_string, .{ self.b_column[i], self.i_column[i], self.n_column[i] orelse 0, self.g_column[i], self.o_column[i] });
         }
     }
 };
@@ -51,13 +55,13 @@ pub const BingoCardV1 = struct {
 fn buildRowFormatString() []const u8 {
     var format_string: []const u8 = "|";
     for (BINGO_COLUMN_HEADER_CHARS) |_| {
-        format_string = format_string ++ "{d: ^3}" ++ "|";
+        format_string = format_string ++ "{d: >3}" ++ "|";
     }
     format_string = format_string ++ "\n";
     return format_string;
 }
 
-fn generate_bingo_col_values(beginning: u8) [15]u8 {
+fn generateBingoColValues(beginning: u8) [15]u8 {
     var init: [15]u8 = undefined;
     for (&init, beginning..) |*value, i| {
         value.* = @intCast(i);
@@ -65,8 +69,8 @@ fn generate_bingo_col_values(beginning: u8) [15]u8 {
     return init;
 }
 
-fn get_random_5(arr: []u8, prng: *std.rand.DefaultPrng) [5]u8 {
-    for (0..4) |i| {
+fn getRandom5(arr: []u8, prng: *std.Random.DefaultPrng) [5]u8 {
+    for (0..5) |i| {
         const j = prng.random().intRangeAtMost(u8, @intCast(i), @intCast(arr.len - 1));
         const temp = arr[i];
         arr[i] = arr[j];

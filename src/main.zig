@@ -1,7 +1,16 @@
 const std = @import("std");
-const bingo_card = @import("models/bingo_card_v1.zig");
+const BingoCardV1 = @import("models/bingo_card_v1.zig").BingoCardV1;
+const BlackoutRunner = @import("sim/blackout_runner.zig").BlackoutRunner;
 
 pub fn main() !void {
-    const my_card = try bingo_card.BingoCardV1.initRandom();
+    var prng = std.Random.DefaultPrng.init(blk: {
+        var seed: u64 = undefined;
+        try std.posix.getrandom(std.mem.asBytes(&seed));
+        break :blk seed;
+    });
+    const my_card = BingoCardV1.initRandom(&prng);
+    const runner = BlackoutRunner.init(&prng);
+
     try my_card.printCard();
+    runner.simBlackoutBingo(my_card);
 }
