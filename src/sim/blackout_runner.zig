@@ -45,43 +45,11 @@ pub const BlackoutRunner = struct {
         var values_found: u8 = 0;
         var turn_won: u8 = 0;
         for (call_order, 0..) |value, i| {
-            switch (value) {
-                1...15 => {
-                    for (columns[0]) |b_value| {
-                        if (b_value == value) {
-                            values_found += 1;
-                        }
-                    }
-                },
-                16...30 => {
-                    for (columns[1]) |i_value| {
-                        if (i_value == value) {
-                            values_found += 1;
-                        }
-                    }
-                },
-                31...45 => {
-                    for (columns[2]) |n_value| {
-                        if (n_value == value) {
-                            values_found += 1;
-                        }
-                    }
-                },
-                46...60 => {
-                    for (columns[3]) |g_value| {
-                        if (g_value == value) {
-                            values_found += 1;
-                        }
-                    }
-                },
-                61...75 => {
-                    for (columns[4]) |o_value| {
-                        if (o_value == value) {
-                            values_found += 1;
-                        }
-                    }
-                },
-                else => unreachable,
+            const column: u8 = @divFloor(value - 1, 15);
+            for (columns[column]) |column_value| {
+                if (column_value == value) {
+                    values_found += 1;
+                }
             }
             if (values_found == 24) {
                 turn_won = @intCast(i);
