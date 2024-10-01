@@ -23,7 +23,7 @@ pub const BlackoutRunner = struct {
         }
 
         var games_won_by_turn: [75]u64 = std.mem.zeroes([75]u64);
-        for (0..1_000_000_000) |_| {
+        for (0..100_000_000) |_| {
             const call_order = getRandomCallOrder(self.prng);
             const turn_won = runSim(call_order, columns);
             games_won_by_turn[turn_won] += 1;
@@ -38,19 +38,13 @@ pub const BlackoutRunner = struct {
         }
         const total_games_less_than: f64 = @floatFromInt(total_games_52_or_less);
         std.debug.print("Games <=52: {d}\n", .{total_games_52_or_less});
-        std.debug.print("Percent Win <=52: {d}\n", .{total_games_less_than / 1_000_000_000.0});
+        std.debug.print("Percent Win <=52: {d}\n", .{total_games_less_than / 100_000_000.0});
     }
 
     fn runSim(call_order: [75]u8, columns: [5][5]u8) u8 {
         var values_found: u8 = 0;
         var turn_won: u8 = 0;
         for (call_order, 0..) |value, i| {
-            const column: u8 = @divFloor(value - 1, 15);
-            for (columns[column]) |column_value| {
-                if (column_value == value) {
-                    values_found += 1;
-                }
-            }
             switch (value) {
                 1...15 => {
                     for (columns[0]) |b_value| {
