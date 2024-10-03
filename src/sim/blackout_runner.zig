@@ -3,7 +3,6 @@ const BingoCardV1 = @import("../models/bingo_card_v1.zig").BingoCardV1;
 
 pub const BlackoutRunner = struct {
     prng: *std.Random.DefaultPrng = undefined,
-    num: u8 = 11,
 
     pub fn init(a_prng: *std.Random.DefaultPrng) BlackoutRunner {
         return .{
@@ -11,7 +10,7 @@ pub const BlackoutRunner = struct {
         };
     }
 
-    pub fn simBlackoutBingo(self: *const BlackoutRunner, card: BingoCardV1) void {
+    pub fn simBlackoutBingo(self: *const BlackoutRunner, card: BingoCardV1, games_won_by_turn: *[75]u64, games: u64) void {
         var fixed_n_columns: [5]u8 = undefined;
         for (card.n_column, 0..) |value, i| {
             fixed_n_columns[i] = value orelse 0;
@@ -22,8 +21,7 @@ pub const BlackoutRunner = struct {
             std.mem.sort(u8, column, {}, std.sort.asc(u8));
         }
 
-        var games_won_by_turn: [75]u64 = std.mem.zeroes([75]u64);
-        for (0..100_000_000) |_| {
+        for (0..games) |_| {
             const call_order = getRandomCallOrder(self.prng);
             const turn_won = runSim(call_order, columns);
             games_won_by_turn[turn_won] += 1;
@@ -31,14 +29,14 @@ pub const BlackoutRunner = struct {
 
         var total_games_52_or_less: u64 = 0;
         for (games_won_by_turn, 0..) |games_won, i| {
-            std.debug.print("Games won turn {d}: {d}\n", .{ i + 1, games_won });
             if (i < 52) {
                 total_games_52_or_less += games_won;
             }
         }
+
+        const games_float: f64 = @floatFromInt(games);
         const total_games_less_than: f64 = @floatFromInt(total_games_52_or_less);
-        std.debug.print("Games <=52: {d}\n", .{total_games_52_or_less});
-        std.debug.print("Percent Win <=52: {d}\n", .{total_games_less_than / 100_000_000.0});
+        std.debug.print("Percent Win <=52: {d}\n", .{total_games_less_than / games_float});
     }
 
     fn runSim(call_order: [75]u8, columns: [5][5]u8) u8 {
