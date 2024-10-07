@@ -4,4 +4,4 @@ A silly bingo simulator (My mother-in-law's boyfriend wanted to know the chances
 # References
 TUI 
 - https://zig.news/lhp/want-to-create-a-tui-application-the-basics-of-uncooked-terminal-io-17gm
-- https://git.sr.ht/~leon_plickat/zig-spoon (same guy as the article)
+- https://git.sr.ht/~leon_plickat/zig-spoon (same guy as the article, Leon Plickat)
