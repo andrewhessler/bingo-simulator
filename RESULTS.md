@@ -12,3 +12,7 @@ Running 100,000,000
 ### Threading - 4 Threads w/o joining results
 Running 25,000,000 * 4
 51.73s, 52.47s, 51.96 
+
+I apparently can't comprehend the passing of time... `time` 
+All threads together took the time above, but actual time passed is: 14.013s, 13.797s, 13.962s
+I'll mess with some different thread counts before playing with UI
